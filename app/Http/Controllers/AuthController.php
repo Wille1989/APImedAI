@@ -48,11 +48,20 @@ class AuthController extends Controller
                     ]);
                 }
 
+                $token = $user->createToken('accessToken');
+
+                return response()->json(['accessToken' => $token->plainTextToken], 200);
+
             } catch(\Exception $e){
-                return response()->json(['message'])
+                return response()->json(['message' => $e->getMessage()], 401);
             }
         ])
     }
 
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
 
+        return resonse()->json(['message' => 'Logged Out'], 200);
+    }
 }
