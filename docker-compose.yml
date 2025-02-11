@@ -3,10 +3,10 @@ services:
     image: mariadb:latest
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 123
-      MYSQL_USER: William
-      MYSQL_PASSWORD: William89
-      MYSQL_DATABASE: apimedai
+      MYSQL_ROOT_PASSWORD: Databas123
+      MYSQL_USER: useradmin
+      MYSQL_PASSWORD: useradmin
+      MYSQL_DATABASE: Takaido
     ports:
       - "3306:3306"
     volumes:

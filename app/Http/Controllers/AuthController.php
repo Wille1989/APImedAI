@@ -12,9 +12,9 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'requiered | string', 
-            'email' => 'requiered | email | unique:users',
-            'password' => 'requiered | confirmed | min:8',
+            'name' => 'required | string', 
+            'email' => 'required | email | unique:users',
+            'password' => 'required | confirmed | min:8',
         ]);
 
         try 
@@ -36,11 +36,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([ 
-            'email' => 'requiered | email',
-            'password' => 'requiered',
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-            try{
-                $user = User::where('email', $reqeust->email->first());
+            try
+            {
+                $user = User::where('email', $request->email)->first();
 
                 if(!$user || !Hash::check($request->password, $user->password)){
                     throw ValidationException::withMessages([
@@ -48,14 +50,13 @@ class AuthController extends Controller
                     ]);
                 }
 
-                $token = $user->createToken('accessToken');
+                $token = $user->createToken('accessToken')->plainTextToken;
 
-                return response()->json(['accessToken' => $token->plainTextToken], 200);
+                return response()->json(['accessToken' => $token], 200);
 
             } catch(\Exception $e){
                 return response()->json(['message' => $e->getMessage()], 401);
             }
-        ])
     }
 
     public function logout(Request $request)
