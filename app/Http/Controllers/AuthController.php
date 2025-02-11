@@ -25,8 +25,13 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
+            $token = $user->createToken('accessToken')->plainTextToken;
+
             return response()->json([
-                'message' => 'New user registered'], 201);
+                'message' => 'New user registered',
+                'user' => $user,
+                'accessToken' => $token
+            ]);
 
         } catch (\Exception $e)
         {
@@ -53,7 +58,11 @@ class AuthController extends Controller
 
                 $token = $user->createToken('accessToken')->plainTextToken;
 
-                return response()->json(['accessToken' => $token], 200);
+               return response()->json([
+                'message' => 'Login Successful',
+                'user' => $user,
+                'accessToken' => $token
+               ]);
 
             } catch(\Exception $e){
                 return response()->json(['message' => $e->getMessage()], 401);
@@ -64,6 +73,6 @@ class AuthController extends Controller
     {
         $request->user()->tokens()->delete();
 
-        return resonse()->json(['message' => 'Logged Out'], 200);
+        return response()->json(['message' => 'Logged Out'], 200);
     }
 }

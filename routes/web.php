@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\GuestChatController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,4 +24,4 @@ Route::get('/chat', function()
     return view ('guest.chat');
 })->name('guest.chat');
 
-Route::post('/chat', [ChatbotController::class, 'chat'])->name('chat.send');
+Route::post('/chat', [GuestChatController::class, 'chat'])->name('chat.send');

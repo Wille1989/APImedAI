@@ -9,6 +9,12 @@
 <body>
     <h2>Chat with AI</h2>
 
+    @if($errors->has('message'))
+    <div style="color: red;">
+        {{ $errors->first('message') }}
+    </div>
+    @endif
+
     <form action="{{ route('chat.send') }}" method="POST">
         @csrf
         <div>
