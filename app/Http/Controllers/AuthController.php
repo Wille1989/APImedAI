@@ -25,7 +25,8 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            return response()->json(['message' => 'New user registered'], 201);
+            return response()->json([
+                'message' => 'New user registered'], 201);
 
         } catch (\Exception $e)
         {
