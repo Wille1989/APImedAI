@@ -27,15 +27,32 @@ class AuthController extends Controller
 
             $token = $user->createToken('accessToken')->plainTextToken;
 
-            return response()->json([
-                'message' => 'New user registered',
-                'user' => $user,
-                'accessToken' => $token
+            $successMessage = "Welcome {$user->name}!";
+
+            if($request->expectsJson())
+            {
+                return response()->json([
+                    'message' => $successMessage,
+                    'user' => $user,
+                    'accessToken' => $token
+                ]);
+            }
+
+            return redirect()->route('user.chat')->with([
+                'message' => $successMessage,
+                'email' => $user->email
             ]);
 
+           
         } catch (\Exception $e)
         {
-            return response()->json(['message' => 'Registration failed'], 500);
+            if($request->exceptsJson())
+            {
+                return response()->json(['message' => 'Registration failed'], 500);
+            }
+
+            return redirect()->route('auth.register')->with('error', 'Registraion failed');
+
         }
     }
 
@@ -75,4 +92,5 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logged Out'], 200);
     }
+
 }
