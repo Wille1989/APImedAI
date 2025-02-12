@@ -15,7 +15,7 @@
     </div>
     @endif
 
-    <form action="{{ route('chat.send') }}" method="POST">
+    <form action="{{ route('guest.chat.send') }}" method="POST">
         @csrf
         <div>
             <label for="message">Your Message:</label>

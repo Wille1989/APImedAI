@@ -19,7 +19,7 @@ class AuthController extends Controller
 
         try 
         {
-            User::create([
+            $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
@@ -46,7 +46,7 @@ class AuthController extends Controller
            
         } catch (\Exception $e)
         {
-            if($request->exceptsJson())
+            if($request->expectsJson())
             {
                 return response()->json(['message' => 'Registration failed'], 500);
             }
@@ -58,10 +58,12 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([ 
+
+         $request->validate([ 
             'email' => 'required|email',
             'password' => 'required',
         ]);
+
 
             try
             {
@@ -73,13 +75,12 @@ class AuthController extends Controller
                     ]);
                 }
 
-                $token = $user->createToken('accessToken')->plainTextToken;
+                $token = $user->createToken('auth_token')->plainTextToken;
 
-               return response()->json([
-                'message' => 'Login Successful',
-                'user' => $user,
-                'accessToken' => $token
-               ]);
+                return response()->json([
+                    'token' => $user->createToken('auth_token')->plainTextToken
+            ]);
+
 
             } catch(\Exception $e){
                 return response()->json(['message' => $e->getMessage()], 401);
@@ -94,3 +95,4 @@ class AuthController extends Controller
     }
 
 }
+
