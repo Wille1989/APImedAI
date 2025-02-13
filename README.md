@@ -1,12 +1,29 @@
-## Welcome to my awesome API Project! 
+# Welcome to my awesome API Project! 🚀
 
-GET|HEAD   / .............................................................................................................................................................................. 
-  POST       api/guest/chat ........................................................................................................................... guest.chat › GuestChatController@chat
-  POST       api/login ..................................................................................................................................... api.login › AuthController@login
-  POST       api/logout ............................................................................................................................................... AuthController@logout
-  POST       api/register ............................................................................................................................ api.register › AuthController@register
-  GET|HEAD   api/user ....................................................................................................................................................................... 
-  POST       api/user/chat ........................................................................................................................... user.chat › ChatbotController@userChat
-  GET|HEAD   sanctum/csrf-cookie .......................................................................................... sanctum.csrf-cookie › Laravel\Sanctum › CsrfCookieController@show
-  GET|HEAD   storage/{path} ................................................................................................................................................... storage.local
-  GET|HEAD   up ............................................................................................................................................................................. 
+## API Routes
+
+### Public Routes
+| Method | Endpoint | Controller & Action |
+|--------|---------|---------------------|
+| `GET|HEAD` | `/` | - |
+| `POST` | `api/guest/chat` | `GuestChatController@chat` |
+
+### Authentication
+| Method | Endpoint | Controller & Action |
+|--------|---------|---------------------|
+| `POST` | `api/login` | `AuthController@login` |
+| `POST` | `api/logout` | `AuthController@logout` |
+| `POST` | `api/register` | `AuthController@register` |
+
+### User Routes
+| Method | Endpoint | Controller & Action |
+|--------|---------|---------------------|
+| `GET|HEAD` | `api/user` | - |
+| `POST` | `api/user/chat` | `ChatbotController@userChat` |
+
+### Security & Utility
+| Method | Endpoint | Controller & Action |
+|--------|---------|---------------------|
+| `GET|HEAD` | `sanctum/csrf-cookie` | `Laravel\Sanctum\CsrfCookieController@show` |
+| `GET|HEAD` | `storage/{path}` | `storage.local` |
+| `GET|HEAD` | `up` | - |
