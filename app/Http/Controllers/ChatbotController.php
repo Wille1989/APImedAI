@@ -1,66 +1,92 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers;
 
+use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use App\Models\ChatHistory;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 
-class ChatController extends Controller
+
+class ChatbotController extends Controller
 {
-    public function store(Request $request)
+    public function userChat(Request $request)
     {
+
+        $user= auth()->user();
+
+        $session_id = $request->session_id;
+
+
+        if (!$session_id && $user) { 
+            $latestSession = ChatHistory::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->value('session_id');
+        
+            if ($latestSession) {
+                $session_id = $latestSession; 
+            } else {
+                $session_id = (string) Uuid::uuid4();
+            }
+        }
+
         $request->validate([
-            'message' => 'required|string',
+            'message' => 'required|string|max:200',
             'session_id' => 'nullable|uuid',
         ]);
 
-        $user = $request->user();
-        if(!$user)
-        {
-            return response()->json(['error' => 'Unauthorized']);
+        logger('Session ID used:', ['session_id' => $session_id]);
+        
+
+        $chatHistory = ChatHistory::where('session_id', $session_id)
+            ->orderBy('created_at', 'asc')
+            ->get(['user_message', 'bot_response']);
+
+        
+        $messages = [];
+        
+        foreach ($chatHistory as $chat){
+            $messages[] = ['role' => 'user', 'content' => $chat->user_message];
+            $messages[] = ['role' => 'assistant', 'content' => $chat->bot_response];
         }
 
-        $session_id = $request->session_id ?? Str::uuid()->toString();
+        $messages[] = ['role' => 'user', 'content' => $request->message];
 
-        $previousMessages = ChatHistory::where('user_id', $user->id)
-        ->where('session_id', $session_id)
-        ->orderBy('created_at', 'asc')
-        ->get()
-        ->map(fn($chat) => 
-        [
-            ['role' => 'user', 'content' => $chat->user_message],
-            ['role' => 'assistant', 'content' => $chat->bot_response],
-        ])
-        ->flatten(1)
-        ->toArray();
+        $response = $this->sendToLLM($messages);
 
-        $messages = array_merge($previousMessages,
-        [
-            ['role' => 'user', 'content' => $request->message]
+        ChatHistory::create([
+            'user_id' => $user ? $user->id : null,
+            'session_id' => $session_id,
+            'user_message' => $request->message,
+            'bot_response' => $response,
         ]);
 
-        // Skicka meddelandet till Ollama och få svar
+        return response()->json([
+            'session_id' => $session_id,
+            'response' => $response
+        ]);
+
+    }
+
+    private function sendToLLM($messages)
+{
+    try {
         $response = Http::post('http://localhost:11434/api/chat', [
             'model' => 'mistral',
             'messages' => $messages,
             'stream' => false,
         ]);
 
-        $botResponseText = $response->json()['message'] ?? 'Couldnt understand your message';
+        if ($response->failed()) {
+            return 'ChatBot did not respond.';
+        }
 
-        $userMessage = ChatHistory::create([
-            'user_id' => $request->user()->id,  // Inloggad användare
-            'session_id' => $session_id,
-            'user_message' => $request->message,
-            'bot_response' => $botResponseText,
-        ]);
+        return $response->json()['message']['content'] ?? 'No response from AI';
 
-        return response()->json([
-            'message' => 'Chat message saved',
-            'session_id' => $session_id,
-            'user_message' => $userMessage->user_message,
-            'bot_response' => $botResponseText,
-        ], 201);
+    } catch (\Exception $e) {
+        return 'Error communicating with ChatBot: ' . $e->getMessage();
     }
+}
+
 }

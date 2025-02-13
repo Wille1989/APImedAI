@@ -4,37 +4,50 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Validation\ValidationException;
 
 class GuestChatController extends Controller
 {
     public function chat(Request $request)
     {
+        // Validera att meddelandet är ett giltigt string med max längd 200
         $request->validate([
-            'message' => 'required|string|max:200', // Säkerställer att meddelandet är giltigt
+            'message' => 'required|string|max:200',
         ]);
 
+        // Skicka förfrågan till ChatBot API:t
         try {
-            $response = Http::timeout(15)->post('http://localhost:11434/api/generate', [
+            $response = Http::post('http://localhost:11434/api/chat', [
                 'model' => 'mistral',
-                'prompt' => $request->input('message'),
+                'messages' => [[ 'role' => 'user', 'content' => $request->message ]],
                 'stream' => false
             ]);
 
+            // Om förfrågan misslyckades, skicka tillbaka ett fel
             if ($response->failed()) {
-                throw ValidationException::withMessages([
-                    'message' => 'ChatBot do not respond'
-                ]);
+                return response()->json([
+                    'message' => 'ChatBot did not respond.',
+                ], 500);
             }
 
-            $botResponse = $response->json()['response'] ?? 'No response from AI';
+            $data = $response->json();
+
+            if (!empty($data['message']['content'])) {
+                $botResponse = $data['message']['content'];
+            } else {
+                $botResponse = 'No response from AI';
+            }
+
+            return response()->json([
+                'user_message' => $request->message,
+                'bot_response' => $botResponse
+            ], 200);
 
         } catch (\Exception $e) {
-            throw ValidationException::withMessages([
-                'message' => 'Couldnt get a response from ChatBot'
-            ]);
+            
+            return response()->json([
+                'message' => 'Could not get a response from ChatBot',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return back()->with('response', $botResponse);
     }
 }
